@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ObraViva – Acompanhamento de obras</title>
+  <meta name="description" content="Acompanhe o andamento da obra do seu imóvel e os pagamentos realizados.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-role="cliente">
+
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+        <rect x="5" y="3" width="14" height="18" rx="1.5" fill="currentColor" opacity=".25"/>
+        <path d="M8 21V9h8v12M8 13h8M8 17h8M11 3v3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span>Obra<strong>Viva</strong></span>
+    </div>
+
+    <div class="seg" role="group" aria-label="Escolher visão">
+      <button type="button" data-role-btn="cliente" aria-pressed="true">Cliente</button>
+      <button type="button" data-role-btn="construtora" aria-pressed="false">Construtora</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="toolbar">
+      <label class="field inline">
+        <span>Obra</span>
+        <select id="obraSelect"></select>
+      </label>
+      <div class="toolbar-actions">
+        <button type="button" id="btnNova" class="btn only-construtora">+ Nova obra</button>
+        <button type="button" id="btnReset" class="btn ghost">Restaurar exemplo</button>
+      </div>
+    </section>
+
+    <div class="grid">
+
+      <!-- Prédio -->
+      <section class="card building-card" aria-labelledby="obraNome">
+        <div class="card-head">
+          <div>
+            <h1 id="obraNome">Obra</h1>
+            <p id="obraInfo" class="muted"></p>
+          </div>
+          <span id="statusBadge" class="badge">Em andamento</span>
+        </div>
+        <div class="scene" id="scene" role="img" aria-label="Ilustração do prédio em construção"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="sw sw-frame"></i>Estrutura</span>
+          <span><i class="sw sw-wall"></i>Alvenaria</span>
+          <span><i class="sw sw-done"></i>Acabamento</span>
+        </div>
+        <p id="previewNote" class="preview-note" hidden>Pré-visualização: ainda não publicado para o cliente.</p>
+      </section>
+
+      <!-- Resumo -->
+      <section class="card kpis" aria-label="Resumo">
+        <div class="kpi">
+          <span class="kpi-label">Obra concluída</span>
+          <span class="kpi-value" id="kpiObra">0%</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Total investido</span>
+          <span class="kpi-value" id="kpiPago">R$ 0,00</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Falta pagar</span>
+          <span class="kpi-value" id="kpiFalta">R$ 0,00</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Próxima parcela</span>
+          <span class="kpi-value small" id="kpiProx">—</span>
+        </div>
+      </section>
+
+      <!-- Etapas -->
+      <section class="card" id="etapasCard" aria-labelledby="etapasTitulo">
+        <h2 id="etapasTitulo">Etapas da obra</h2>
+        <ul id="etapasList" class="stages"></ul>
+      </section>
+
+      <!-- Atualizar (construtora) -->
+      <section class="card only-construtora" id="atualizarCard" aria-labelledby="atualizarTitulo">
+        <h2 id="atualizarTitulo">Atualizar obra</h2>
+        <p class="muted">Mova os controles para ver o prédio mudar. O cliente só vê o resultado depois de publicar.</p>
+        <form id="formAtualizar" novalidate>
+          <div id="sliders" class="sliders"></div>
+          <label class="field">
+            <span>Observação para o cliente (opcional)</span>
+            <textarea id="notaAtualizacao" rows="2" maxlength="300" placeholder="Ex.: Concluída a concretagem da laje do 5º andar."></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Publicar atualização</button>
+            <button type="button" id="btnDescartar" class="btn ghost">Descartar alterações</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Financeiro -->
+      <section class="card" id="financeiroCard" aria-labelledby="finTitulo">
+        <h2 id="finTitulo">Pagamentos</h2>
+
+        <div class="compare" id="compare"></div>
+        <p id="compareText" class="muted"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Parcela</th><th>Vencimento</th><th class="num">Valor</th><th>Situação</th><th class="only-construtora">Ação</th></tr>
+            </thead>
+            <tbody id="parcelasBody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button type="button" id="btnMais" class="btn ghost">Mostrar mais parcelas</button>
+        </div>
+      </section>
+
+      <!-- Histórico -->
+      <section class="card" id="historicoCard" aria-labelledby="histTitulo">
+        <h2 id="histTitulo">Histórico de atualizações</h2>
+        <ol id="historico" class="timeline"></ol>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    Protótipo acadêmico – Engenharia de Software III · Os dados ficam salvos apenas neste navegador.
+  </footer>
+
+  <!-- Nova obra -->
+  <dialog id="dlgNova">
+    <form id="formNova" method="dialog" novalidate>
+      <h2>Nova obra</h2>
+      <label class="field"><span>Nome do empreendimento</span>
+        <input id="nNome" required maxlength="60" placeholder="Residencial Exemplo"></label>
+      <label class="field"><span>Cidade</span>
+        <input id="nCidade" required maxlength="60" placeholder="Itapetininga, SP"></label>
+      <label class="field"><span>Cliente (comprador)</span>
+        <input id="nCliente" required maxlength="60" placeholder="Nome do cliente"></label>
+      <div class="two">
+        <label class="field"><span>Andares</span>
+          <input id="nAndares" type="number" min="2" max="30" value="10" required></label>
+        <label class="field"><span>Nº de parcelas</span>
+          <input id="nParcelas" type="number" min="1" max="120" value="36" required></label>
+      </div>
+      <div class="two">
+        <label class="field"><span>Valor do contrato (R$)</span>
+          <input id="nValor" type="number" min="1000" step="100" value="300000" required></label>
+        <label class="field"><span>1º vencimento</span>
+          <input id="nVenc" type="date" required></label>
+      </div>
+      <p id="nErro" class="erro" role="alert" hidden></p>
+      <div class="form-actions">
+        <button type="submit" class="btn primary" id="nSalvar">Criar obra</button>
+        <button type="button" class="btn ghost" id="nCancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
